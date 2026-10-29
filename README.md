@@ -4,14 +4,16 @@
 
 ## ブラウザで遊ぶ
 
-このリポジトリにはWeb版のビルド成果物を含めていません。最初にUnityでWeb向けにビルドし、生成された `index.html` をローカルサーバーで開きます。必要なものは **Unity `6000.0.45f1`（Web Build Support付き）** と、VS Codeの [Live Server拡張](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) です。
+[公開中のブラウザ版はこちら](https://tobigusoku.github.io/tondemoShogi/)です。
+
+手元でビルドし直す場合は、UnityでWeb向けにビルドし、生成された `index.html` をローカルサーバーで開きます。必要なものは **Unity `6000.0.45f1`（Web Build Support付き）** と、VS Codeの [Live Server拡張](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) です。
 
 1. Unity Hubでこのフォルダをプロジェクトとして開きます。
 2. Unityの **File > Build Profiles** で **Web** を選び、**Build** を実行します。出力先にはプロジェクト内の `Build/WebGL` を指定します。
 3. ビルド後、VS Codeの **File > Open Folder** で `Build/WebGL` フォルダを開きます。
 4. 生成された `index.html` を右クリックし、**Open with Live Server** を選びます。開いたブラウザでゲームが動きます。
 
-`Build/` はGit管理から除外されているので、clone直後には存在しません。VS Codeでプロジェクト全体を開いたときも設定上 `Build/` が非表示になるため、手順3ではビルド出力フォルダを直接開きます。ゲームのコードを変えたらUnityで再ビルドしてください。Live Serverは生成済みファイルを配信するだけです。
+プロジェクト直下の `Build/` はGit管理から除外されているので、clone直後には存在しません。VS Codeでプロジェクト全体を開いたときも設定上 `Build/` が非表示になるため、手順3ではビルド出力フォルダを直接開きます。ゲームのコードを変えたらUnityで再ビルドしてください。Live Serverは生成済みファイルを配信するだけです。
 
 以前作ったWeb版の出力フォルダが別の場所に残っている場合は、そのフォルダをVS Codeで開き、`index.html` から手順4へ進めます。
 
