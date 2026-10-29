@@ -21,7 +21,7 @@ public class CellGenerator : MonoBehaviour
 
     void InitializeBoard()
     {
-        // ‘I‚Î‚ê‚½“Áê‹î‚ğæ“¾iƒfƒtƒHƒ‹ƒg‚Í‹âj
+        // é¸ã°ã‚ŒãŸç‰¹æ®Šé§’ã‚’å–å¾—ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯éŠ€ï¼‰
         string selected = PlayerPrefs.GetString("SpecialPiece", "Gin");
         Type specialType;
         switch (selected)
@@ -32,39 +32,39 @@ public class CellGenerator : MonoBehaviour
             case "Bomb":
                 specialType = Type.Bomb;
                 break;
-            // ‘¼‚É’Ç‰Á‚µ‚½‚¢‹î‚ª‚ ‚ê‚Î‚±‚±‚É case ‚ğ‘«‚·
+            // ä»–ã«è¿½åŠ ã—ãŸã„é§’ãŒã‚ã‚Œã°ã“ã“ã« case ã‚’è¶³ã™
             default:
                 specialType = Type.Gin;
                 break;
         }
 
-        // •à
+        // æ­©
         for (int x = 0; x < width; x++)
         {
             ban56[x, 1] = new PieceData(Type.Fu, Team.Black);
             ban56[x, 4] = new PieceData(Type.Fu, Team.White);
         }
 
-        // ‰¤
+        // ç‹
         ban56[2, 0] = new PieceData(Type.Ou, Team.Black);
         ban56[2, 5] = new PieceData(Type.Ou, Team.White);
 
-        // ‹à
+        // é‡‘
         ban56[1, 0] = new PieceData(Type.Kin, Team.Black);
         ban56[3, 5] = new PieceData(Type.Kin, Team.White);
 
-        // Šp
+        // è§’
         ban56[0, 0] = new PieceData(Type.Kaku, Team.Black);
         ban56[4, 5] = new PieceData(Type.Kaku, Team.White);
 
-        // ”òÔ
+        // é£›è»Š
         ban56[4, 0] = new PieceData(Type.Hisha, Team.Black);
         ban56[0, 5] = new PieceData(Type.Hisha, Team.White);
 
-        // ‹âi‘Šèj
+        // éŠ€ï¼ˆç›¸æ‰‹ï¼‰
         ban56[1, 5] = new PieceData(Type.Gin, Team.White);
 
-        // ‹â or ˆÃEÒ or ”š’ei‘I‘ğ§j
+        // éŠ€ or æš—æ®ºè€… or çˆ†å¼¾ï¼ˆé¸æŠåˆ¶ï¼‰
         ban56[3, 0] = new PieceData(specialType, Team.Black);
     }
 

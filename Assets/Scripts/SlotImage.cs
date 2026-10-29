@@ -14,7 +14,7 @@ public class SlotImage : MonoBehaviour
 
     void OnMouseDown()
     {
-        Debug.Log($"‚¿‹î‚Ì{type.ToString()}‚ª‘I‘ğ‚³‚ê‚Ü‚µ‚½B");
+        Debug.Log($"æŒã¡é§’ã®{type.ToString()}ãŒé¸æŠã•ã‚Œã¾ã—ãŸã€‚");
         GameManager.Instance.OnCapturedPieceSelected(type, team);
     }
 }

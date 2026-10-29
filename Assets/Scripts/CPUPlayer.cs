@@ -6,17 +6,18 @@ public class CPUPlayer : MonoBehaviour
     public GameManager gameManager;
 
     /// <summary>
-    /// CPU‚Ìˆêè‚ğŒˆ’è‚µ‚ÄÀs
+    /// CPUã®ä¸€æ‰‹ã‚’æ±ºå®šã—ã¦å®Ÿè¡Œ
     /// </summary>
     public void MakeMove()
     {
         var gm = gameManager != null ? gameManager : GameManager.Instance;
-        if (gm == null || gm.isGameOver || gm.GetCurrentTurn() != Team.White) return;
+        if (gm == null || gm.isGameOver || gm.CurrentPhase != TurnPhase.CpuThinking ||
+            gm.GetCurrentTurn() != Team.White) return;
 
         List<(int fx, int fy, Vector2Int to)> attackMoves = new();
         List<(int fx, int fy, Vector2Int to)> candidateMoves = new();
 
-        // ‘S‹î‚Ì‡–@è‚ğûW
+        // å…¨é§’ã®åˆæ³•æ‰‹ã‚’åé›†
         for (int fx = 0; fx < gm.cellGenerator.width; fx++)
         {
             for (int fy = 0; fy < gm.cellGenerator.height; fy++)
@@ -24,7 +25,7 @@ public class CPUPlayer : MonoBehaviour
                 var pd = gm.cellGenerator.GetPieceDataAt(fx, fy);
                 if (pd == null || pd.team != Team.White) continue;
 
-                // pd ‚ğ’¼Ú“n‚µ‚Ä‡–@è‚ğæ“¾
+                // pd ã‚’ç›´æ¥æ¸¡ã—ã¦åˆæ³•æ‰‹ã‚’å–å¾—
                 var moves = gm.GetMovableCells(fx, fy, pd);
                 if (moves == null || moves.Count == 0) continue;
 
@@ -39,14 +40,17 @@ public class CPUPlayer : MonoBehaviour
             }
         }
 
-        // æ‚ê‚é‹î‚ª‚ ‚ê‚Î—DæA‚È‚¯‚ê‚Îƒ‰ƒ“ƒ_ƒ€
+        // å–ã‚Œã‚‹é§’ãŒã‚ã‚Œã°å„ªå…ˆã€ãªã‘ã‚Œã°ãƒ©ãƒ³ãƒ€ãƒ 
         (int fx, int fy, Vector2Int to) choice;
         if (attackMoves.Count > 0)
             choice = attackMoves[Random.Range(0, attackMoves.Count)];
         else if (candidateMoves.Count > 0)
             choice = candidateMoves[Random.Range(0, candidateMoves.Count)];
         else
-            return; // “®‚©‚¹‚éè‚È‚µ
+        {
+            gm.HandleCpuNoLegalMove();
+            return;
+        }
 
         gm.MovePieceByCPU(choice.fx, choice.fy, choice.to.x, choice.to.y);
     }

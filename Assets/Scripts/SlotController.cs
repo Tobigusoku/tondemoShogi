@@ -6,11 +6,11 @@ using UnityEngine.EventSystems;
 
 public class SlotController : MonoBehaviour
 {
-    [Header("ƒXƒƒbƒgî•ñ")]
+    [Header("ã‚¹ãƒ­ãƒƒãƒˆæƒ…å ±")]
     public Type type;
     public Team team;
 
-    [Header("ŽQÆÝ’è")]
+    [Header("å‚ç…§è¨­å®š")]
     [SerializeField] private GameObject slotContainer;
     [SerializeField] private TextMeshPro slotCountText;
 
@@ -32,7 +32,7 @@ public class SlotController : MonoBehaviour
         CurrentCount = newCount;
         slotCountText.text = CurrentCount.ToString();
 
-        // Ž‚¿‹î‚ª 0 ˆÈ‰º‚È‚ç”ñ•\Ž¦A1 ˆÈã‚È‚ç•\Ž¦
+        // æŒã¡é§’ãŒ 0 ä»¥ä¸‹ãªã‚‰éžè¡¨ç¤ºã€1 ä»¥ä¸Šãªã‚‰è¡¨ç¤º
         gameObject.SetActive(CurrentCount > 0);
     }
 }

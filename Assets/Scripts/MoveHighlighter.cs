@@ -7,14 +7,14 @@ public class MoveHighlighter : MonoBehaviour
     private List<GameObject> currentHighlights = new List<GameObject>();
 
     /// <summary>
-    /// ワールド座標リストでハイライト表示
+    /// 繝ｯ繝ｼ繝ｫ繝牙ｺｧ讓吶Μ繧ｹ繝医〒繝上う繝ｩ繧､繝郁｡ｨ遉ｺ
     /// </summary>
     public void ShowHighlights(List<Vector3> worldPositions)
     {
         ClearHighlights();
         if (highlightPrefab == null)
         {
-            Debug.LogWarning("MoveHighlighter: highlightPrefab が設定されていません");
+            Debug.LogWarning("MoveHighlighter: highlightPrefab 縺瑚ｨｭ螳壹＆繧後※縺�縺ｾ縺帙ｓ");
             return;
         }
         foreach (var pos in worldPositions)

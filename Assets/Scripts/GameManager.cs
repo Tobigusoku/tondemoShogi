@@ -9,34 +9,35 @@ public class GameManager : MonoBehaviour
     public CellGenerator cellGenerator;
     public GameObject resultPanel;
 
-    // ‚¿‹îƒXƒƒbƒgŠÇ—
+    // æŒã¡é§’ã‚¹ãƒ­ãƒƒãƒˆç®¡ç†
     private Dictionary<(Type pieceType, Team team), SlotController> slotMap;
     public bool isGameOver { get; private set; } = false;
 
-    // ‘I‘ğó‘Ô
+    // é¸æŠçŠ¶æ…‹
     private GameObject selectedPieceObj = null;
     private PieceData selectedPieceData = null;
     private int selectedX = -1, selectedY = -1;
     private bool isCapturedPieceSelected = false;
 
-    // è”ÔŠÇ—
+    // æ‰‹ç•ªç®¡ç†
     private Team currentTurn = Team.Black;
+    public TurnPhase CurrentPhase { get; private set; } = TurnPhase.HumanInput;
     public TextMeshProUGUI turnText;
 
-    // ƒnƒCƒ‰ƒCƒgŠÇ—
+    // ãƒã‚¤ãƒ©ã‚¤ãƒˆç®¡ç†
     public MoveHighlighter moveHighlighter;
     public GameObject selectionHighlightPrefab;
     private GameObject currentSelectionHighlight;
 
-    // SEŠÇ—
+    // SEç®¡ç†
     public AudioClip pieceSE;
     public AudioClip explosionSE;
     private AudioSource audioSource;
 
-    // ”š”­ƒGƒtƒFƒNƒg—pPrefab
+    // çˆ†ç™ºã‚¨ãƒ•ã‚§ã‚¯ãƒˆç”¨Prefab
     public GameObject explosionEffectPrefab;
 
-    // CPU—p
+    // CPUç”¨
     public CPUPlayer cpuPlayer;
 
     void Awake()
@@ -57,13 +58,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ‹î‘ä‚©‚ç‚¿‹î‚ğ‘I‘ğ
+    // é§’å°ã‹ã‚‰æŒã¡é§’ã‚’é¸æŠ
     public void OnCapturedPieceSelected(Type type, Team team)
     {
-        if (isGameOver || team != currentTurn) return;
+        if (CurrentPhase != TurnPhase.HumanInput || isGameOver || team != currentTurn) return;
         if (!slotMap.TryGetValue((type, team), out var slot) || slot.CurrentCount <= 0) return;
 
-        // ƒLƒƒƒ“ƒZƒ‹
+        // ã‚­ãƒ£ãƒ³ã‚»ãƒ«
         if (isCapturedPieceSelected && selectedPieceData != null &&
             selectedPieceData.type == type && selectedPieceData.team == team)
         {
@@ -71,13 +72,13 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // ‘I‘ğî•ñƒZƒbƒg
+        // é¸æŠæƒ…å ±ã‚»ãƒƒãƒˆ
         selectedPieceData = new PieceData(type, team);
         selectedPieceObj = null;
         selectedX = selectedY = -1;
         isCapturedPieceSelected = true;
 
-        // ƒnƒCƒ‰ƒCƒg
+        // ãƒã‚¤ãƒ©ã‚¤ãƒˆ
         ShowSelectionHighlight(slot.highlightTarget.position);
         List<Vector2Int> placeable = GetPlaceableCells();
         var worldPositions = new List<Vector3>();
@@ -86,34 +87,37 @@ public class GameManager : MonoBehaviour
         moveHighlighter.ShowHighlights(worldPositions);
     }
 
-    // ƒZƒ‹ƒNƒŠƒbƒN‚Ìˆ—
+    // ã‚»ãƒ«ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†
     public void OnCellClicked(int x, int y)
     {
-        if (isGameOver) return;
+        if (CurrentPhase != TurnPhase.HumanInput || isGameOver) return;
 
         if (isCapturedPieceSelected)
         {
-            // ‹î‘ä‚©‚ç”z’u
+            // é§’å°ã‹ã‚‰é…ç½®
             HandleCapturedPiecePlacement(x, y);
         }
         else if (selectedPieceObj == null)
         {
-            // ”Õã‹î‚Ì‘I‘ğ
+            // ç›¤ä¸Šé§’ã®é¸æŠ
             HandlePieceSelection(x, y);
         }
         else
         {
-            // ˆÚ“®EƒLƒƒƒvƒ`ƒƒ
+            // ç§»å‹•ãƒ»ã‚­ãƒ£ãƒ—ãƒãƒ£
             HandlePieceMoveOrCapture(x, y);
         }
     }
 
-    // ‚¿‹î”z’uˆ—
+    // æŒã¡é§’é…ç½®å‡¦ç†
     public void HandleCapturedPiecePlacement(int x, int y)
     {
+        if (CurrentPhase != TurnPhase.HumanInput) return;
         if (!IsMyTurn(selectedPieceData.team)) return;
         if (cellGenerator.GetPieceDataAt(x, y) != null) return;
         if (selectedPieceData.type == Type.Fu && IsNifu(x, selectedPieceData.team)) return;
+
+        CurrentPhase = TurnPhase.ResolvingMove;
 
         GameObject prefab = selectedPieceData.GetPrefab();
         GameObject pieceObj = Instantiate(prefab,
@@ -124,7 +128,7 @@ public class GameManager : MonoBehaviour
         cellGenerator.SetPieceDataAt(x, y, selectedPieceData);
         cellGenerator.GetCellAt(x, y).GetComponent<Cell>().currentPiece = pieceObj;
 
-        // SEÄ¶
+        // SEå†ç”Ÿ
         if (pieceSE != null && audioSource != null)
         {
             audioSource.PlayOneShot(pieceSE);
@@ -133,11 +137,11 @@ public class GameManager : MonoBehaviour
         if (slotMap.TryGetValue((selectedPieceData.type, selectedPieceData.team), out var slot))
             slot.UpdateCount(slot.CurrentCount - 1);
 
-        EndTurn();
         ClearSelection();
+        EndTurn();
     }
 
-    // ”Õã‹î‚Ì‘I‘ğ
+    // ç›¤ä¸Šé§’ã®é¸æŠ
     public void HandlePieceSelection(int x, int y)
     {
         GameObject pieceObj = cellGenerator.GetPieceAt(x, y);
@@ -155,12 +159,13 @@ public class GameManager : MonoBehaviour
             worldPositions.Add(cellGenerator.GetCellAt(idx.x, idx.y).transform.position);
         moveHighlighter.ShowHighlights(worldPositions);
 
-        Debug.Log($"({x},{y}) ‚Ì‹î‚ğ‘I‘ğ‚µ‚Ü‚µ‚½");
+        Debug.Log($"({x},{y}) ã®é§’ã‚’é¸æŠã—ã¾ã—ãŸ");
     }
 
-    // ˆÚ“®EƒLƒƒƒvƒ`ƒƒˆ—
+    // ç§»å‹•ãƒ»ã‚­ãƒ£ãƒ—ãƒãƒ£å‡¦ç†
     public void HandlePieceMoveOrCapture(int x, int y)
     {
+        if (CurrentPhase != TurnPhase.HumanInput) return;
         if (!IsMyTurn(selectedPieceData.team))
         {
             ClearSelection();
@@ -173,44 +178,47 @@ public class GameManager : MonoBehaviour
         }
         if (!CanMove(selectedX, selectedY, x, y, selectedPieceData)) return;
 
+        CurrentPhase = TurnPhase.ResolvingMove;
+
         PieceData destData = cellGenerator.GetPieceDataAt(x, y);
-        if (destData != null && destData.team != selectedPieceData.team)
-            CapturePiece(x, y, destData);
+        bool capturedBomb = destData != null && destData.type == Type.Bomb;
+        if (capturedBomb)
+        {
+            ResolveBombCapture(selectedX, selectedY, x, y, selectedPieceObj);
+        }
+        else
+        {
+            if (destData != null && destData.team != selectedPieceData.team)
+                CapturePiece(x, y, destData);
 
-        selectedPieceObj.transform.position = cellGenerator.GetCellAt(x, y).transform.position;
+            selectedPieceObj.transform.position = cellGenerator.GetCellAt(x, y).transform.position;
+            cellGenerator.MovePiece(selectedX, selectedY, x, y);
+        }
 
-        // SEÄ¶
+        // SEå†ç”Ÿ
         if (pieceSE != null && audioSource != null)
         {
             audioSource.PlayOneShot(pieceSE);
         }
 
-        cellGenerator.MovePiece(selectedX, selectedY, x, y);
-
-        if (CanPromote(selectedPieceData, selectedY, y))
+        if (!capturedBomb && !isGameOver && CanPromote(selectedPieceData, selectedY, y))
             PromoteAt(x, y);
 
-        EndTurn();
         ClearSelection();
+        if (!isGameOver) EndTurn();
     }
 
-    // “G‹î•ßŠl
+    // æ•µé§’æ•ç²
     void CapturePiece(int x, int y, PieceData dest)
     {
-        // ”š’e‹î‚Ìê‡‚ÍüˆÍ‚ğ”š”­
-        if (dest.type == Type.Bomb)
-        {
-            TriggerExplosion(x, y);
-            return;
-        }
-        // ‰¤‚Ì•ßŠl”»’è
+        // ç‹ã®æ•ç²åˆ¤å®š
         if (dest.type == Type.Ou)
         {
             HandleKingCapture(dest.team);
             cellGenerator.RemovePieceAt(x, y);
             return;
         }
-        // ‚»‚Ì‘¼‚Ì‹î‚Í‚¿‹î‚É’Ç‰Á
+        // ãã®ä»–ã®é§’ã¯æŒã¡é§’ã«è¿½åŠ 
         Type capType = dest.isPromoted ? GetOriginalType(dest.type) : dest.type;
         if (selectedPieceData != null && !IsSpecialPiece(capType) &&
             slotMap.TryGetValue((capType, selectedPieceData.team), out var slot))
@@ -221,7 +229,7 @@ public class GameManager : MonoBehaviour
         cellGenerator.RemovePieceAt(x, y);
     }
 
-    // ˆÚ“®‰Â”Û”»’è
+    // ç§»å‹•å¯å¦åˆ¤å®š
     bool CanMove(int fromX, int fromY, int toX, int toY, PieceData data)
     {
         if (data == null) return false;
@@ -236,7 +244,7 @@ public class GameManager : MonoBehaviour
         return IsValidMove(fromX, fromY, toX, toY, data);
     }
 
-    // ‘I‘ğ‰ğœ
+    // é¸æŠè§£é™¤
     void ClearSelection()
     {
         selectedPieceObj = null;
@@ -247,7 +255,7 @@ public class GameManager : MonoBehaviour
         if (currentSelectionHighlight != null) Destroy(currentSelectionHighlight);
     }
 
-    // ‘I‘ğ’†‹îƒnƒCƒ‰ƒCƒg•\¦
+    // é¸æŠä¸­é§’ãƒã‚¤ãƒ©ã‚¤ãƒˆè¡¨ç¤º
     void ShowSelectionHighlight(Vector3 pos)
     {
         if (selectionHighlightPrefab == null) return;
@@ -255,7 +263,7 @@ public class GameManager : MonoBehaviour
         currentSelectionHighlight = Instantiate(selectionHighlightPrefab, pos, Quaternion.identity, cellGenerator.pieceRoot);
     }
 
-    // ˆÚ“®‰Â”\ƒZƒ‹ˆê——æ“¾
+    // ç§»å‹•å¯èƒ½ã‚»ãƒ«ä¸€è¦§å–å¾—
     public List<Vector2Int> GetMovableCells(int fromX, int fromY)
     {
         var list = new List<Vector2Int>();
@@ -274,7 +282,7 @@ public class GameManager : MonoBehaviour
         return result;
     }
 
-    // ”z’u‰Â”\ƒZƒ‹ˆê——æ“¾
+    // é…ç½®å¯èƒ½ã‚»ãƒ«ä¸€è¦§å–å¾—
     public List<Vector2Int> GetPlaceableCells()
     {
         var list = new List<Vector2Int>();
@@ -286,16 +294,30 @@ public class GameManager : MonoBehaviour
         return list;
     }
 
-    // ”š”­ˆ—
+    void ResolveBombCapture(int fromX, int fromY, int toX, int toY, GameObject movingPiece)
+    {
+        cellGenerator.RemovePieceAt(toX, toY);
+        movingPiece.transform.position = cellGenerator.GetCellAt(toX, toY).transform.position;
+        cellGenerator.MovePiece(fromX, fromY, toX, toY);
+        TriggerExplosion(toX, toY);
+    }
+
+    // çˆ†ç™ºå‡¦ç†
     void TriggerExplosion(int x, int y)
     {
-        // ’†S‚Ì”š’e‹î©g‚ğ‰Â‹•ƒf[ƒ^—¼•û‚Åíœ
         var bombCell = cellGenerator.GetCellAt(x, y).GetComponent<Cell>();
-        if (bombCell.currentPiece != null)
-            Destroy(bombCell.currentPiece);
-        cellGenerator.SetPieceDataAt(x, y, null);
+        bool blackKingDestroyed = false;
+        bool whiteKingDestroyed = false;
 
-        // ”š”­ƒGƒtƒFƒNƒg
+        var centerData = cellGenerator.GetPieceDataAt(x, y);
+        if (centerData != null && centerData.type == Type.Ou)
+        {
+            if (centerData.team == Team.Black) blackKingDestroyed = true;
+            else whiteKingDestroyed = true;
+        }
+        cellGenerator.RemovePieceAt(x, y);
+
+        // çˆ†ç™ºã‚¨ãƒ•ã‚§ã‚¯ãƒˆ
         if (explosionEffectPrefab != null)
         {
             var effect = Instantiate(explosionEffectPrefab,
@@ -311,13 +333,13 @@ public class GameManager : MonoBehaviour
             else Destroy(effect, 2f);
         }
 
-        // SEÄ¶
-        if (pieceSE != null && audioSource != null)
+        // SEå†ç”Ÿ
+        if (explosionSE != null && audioSource != null)
         {
             audioSource.PlayOneShot(explosionSE);
         }
 
-        // üˆÍ8ƒ}ƒX‚ğ“¹˜A‚ê
+        // å‘¨å›²8ãƒã‚¹ã‚’é“é€£ã‚Œ
         for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++)
             {
@@ -326,42 +348,50 @@ public class GameManager : MonoBehaviour
                 if (nx < 0 || nx >= cellGenerator.width || ny < 0 || ny >= cellGenerator.height)
                     continue;
 
-                var cell = cellGenerator.GetCellAt(nx, ny).GetComponent<Cell>();
                 var neighborData = cellGenerator.GetPieceDataAt(nx, ny);
-                if (neighborData == null || cell.currentPiece == null) continue;
+                if (neighborData == null) continue;
 
-                // ‰¤‚Ìê‡‚Í‰Â‹ƒIƒuƒWƒFƒNƒg‚ğíœ‚µ‚Â‚ÂŸ—˜”»’è
                 if (neighborData.type == Type.Ou)
                 {
-                    Destroy(cell.currentPiece);
-                    cell.currentPiece = null;
-                    cellGenerator.SetPieceDataAt(nx, ny, null);
-                    HandleKingCapture(neighborData.team);
-                    continue;
+                    if (neighborData.team == Team.Black) blackKingDestroyed = true;
+                    else whiteKingDestroyed = true;
                 }
 
-                // ’Êí‹î‚Í‰Â‹íœ‚Ì‚İi‚¿‹î‰»‚È‚µj
-                Destroy(cell.currentPiece);
-                cell.currentPiece = null;
-                cellGenerator.SetPieceDataAt(nx, ny, null);
+                cellGenerator.RemovePieceAt(nx, ny);
             }
+
+        if (blackKingDestroyed && whiteKingDestroyed)
+            CompleteGame("å¼•ãåˆ†ã‘ï¼");
+        else if (blackKingDestroyed)
+            HandleKingCapture(Team.Black);
+        else if (whiteKingDestroyed)
+            HandleKingCapture(Team.White);
     }
 
-    // ‰¤”»’è‚ÆŒ‹‰Ê•\¦
+    // ç‹åˆ¤å®šã¨çµæœè¡¨ç¤º
     bool HandleKingCapture(Team kingTeam)
     {
-        // kingTeam ‚Ì‰¤‚ªæ‚ç‚ê‚½ -> opponent wins
-        string result = kingTeam == Team.Black ? "‚ ‚È‚½‚Ì•‰‚¯c" : "‚ ‚È‚½‚ÌŸ‚¿I";
-        ShowResult(result);
-        isGameOver = true;
+        // kingTeam ã®ç‹ãŒå–ã‚‰ã‚ŒãŸ -> opponent wins
+        string result = kingTeam == Team.Black ? "ã‚ãªãŸã®è² ã‘â€¦" : "ã‚ãªãŸã®å‹ã¡ï¼";
+        CompleteGame(result);
         return true;
+    }
+
+    void CompleteGame(string result)
+    {
+        if (isGameOver) return;
+        isGameOver = true;
+        CurrentPhase = TurnPhase.GameOver;
+        CancelInvoke(nameof(TriggerCPUMove));
+        UpdateTurnUI();
+        ShowResult(result);
     }
 
     bool IsMyTurn(Team team)
     {
         if (team != currentTurn)
         {
-            Debug.Log($"ˆá‚¤è”Ô‚Å‚·: Œ»İ‚Ìè”Ô‚Í{currentTurn}‚Å‚·");
+            Debug.Log($"é•ã†æ‰‹ç•ªã§ã™: ç¾åœ¨ã®æ‰‹ç•ªã¯{currentTurn}ã§ã™");
             return false;
         }
         return true;
@@ -416,7 +446,7 @@ public class GameManager : MonoBehaviour
     void PromoteAt(int x, int y)
     {
         var data = cellGenerator.GetPieceDataAt(x, y);
-        if (data == null) return;  // ˆÀ‘S‘Îô
+        if (data == null) return;  // å®‰å…¨å¯¾ç­–
 
         data.Promote();
 
@@ -433,21 +463,30 @@ public class GameManager : MonoBehaviour
 
     void EndTurn()
     {
+        if (isGameOver) return;
         currentTurn = currentTurn == Team.Black ? Team.White : Team.Black;
-        Debug.Log($"è”Ô‚ª{currentTurn}‚ÉˆÚ‚è‚Ü‚µ‚½");
+        Debug.Log($"æ‰‹ç•ªãŒ{currentTurn}ã«ç§»ã‚Šã¾ã—ãŸ");
         UpdateTurnUI();
         if (currentTurn == Team.White && cpuPlayer != null)
         {
-            // ­‚µ’x‰„‚³‚¹‚ÄCPU‚ª©‘R‚É“®‚­‚æ‚¤‚É
-            Debug.Log("CPUƒ^[ƒ“‚È‚Ì‚ÅTriggerCPUMove‚ğŒÄ‚Ñ‚Ü‚·");
+            CurrentPhase = TurnPhase.CpuThinking;
+            // å°‘ã—é…å»¶ã•ã›ã¦CPUãŒè‡ªç„¶ã«å‹•ãã‚ˆã†ã«
+            Debug.Log("CPUã‚¿ãƒ¼ãƒ³ãªã®ã§TriggerCPUMoveã‚’å‘¼ã³ã¾ã™");
             Invoke(nameof(TriggerCPUMove), 0.5f);
+        }
+        else
+        {
+            CurrentPhase = TurnPhase.HumanInput;
         }
     }
 
     void UpdateTurnUI()
     {
         if (turnText != null)
-            turnText.text = currentTurn == Team.Black ? "‚ ‚È‚½‚Ì”Ô‚Å‚·" : "‘Šè‚Ì”Ô‚Å‚·";
+        {
+            if (isGameOver) turnText.text = "å¯¾å±€çµ‚äº†";
+            else turnText.text = currentTurn == Team.Black ? "ã‚ãªãŸã®ç•ªã§ã™" : "ç›¸æ‰‹ã®ç•ªã§ã™";
+        }
     }
 
     void ShowResult(string result)
@@ -484,10 +523,10 @@ public class GameManager : MonoBehaviour
         return fromInZone || toInZone;
     }
 
-    // CPU—pˆÚ“®
+    // CPUç”¨ç§»å‹•
     public void MovePieceByCPU(int fromX, int fromY, int toX, int toY)
     {
-        if (isGameOver) return;
+        if (isGameOver || CurrentPhase != TurnPhase.CpuThinking || currentTurn != Team.White) return;
         ClearSelection();
         var data = cellGenerator.GetPieceDataAt(fromX, fromY);
         if (data == null) return;
@@ -496,29 +535,45 @@ public class GameManager : MonoBehaviour
         if (fromCell == null || toCell == null) return;
         var pieceObj = fromCell.GetComponent<Cell>().currentPiece;
         if (pieceObj == null) return;
-        // •ßŠl
+        CurrentPhase = TurnPhase.ResolvingMove;
+
+        // æ•ç²
         var dest = cellGenerator.GetPieceDataAt(toX, toY);
-        if (dest != null && dest.team != data.team)
-            CapturePiece(toX, toY, dest);
-        // ˆÚ“®
-        pieceObj.transform.position = toCell.transform.position;
-        cellGenerator.MovePiece(fromX, fromY, toX, toY);
+        bool capturedBomb = dest != null && dest.type == Type.Bomb;
+        if (capturedBomb)
+        {
+            ResolveBombCapture(fromX, fromY, toX, toY, pieceObj);
+        }
+        else
+        {
+            if (dest != null && dest.team != data.team)
+                CapturePiece(toX, toY, dest);
+            pieceObj.transform.position = toCell.transform.position;
+            cellGenerator.MovePiece(fromX, fromY, toX, toY);
+        }
+
         // SE
         if (pieceSE != null && audioSource != null)
             audioSource.PlayOneShot(pieceSE);
-        // ¬‚è
-        if (CanPromote(data, fromY, toY)) PromoteAt(toX, toY);
-        // ƒ^[ƒ“I—¹
-        EndTurn();
+        // æˆã‚Š
+        if (!capturedBomb && !isGameOver && CanPromote(data, fromY, toY)) PromoteAt(toX, toY);
+        // ã‚¿ãƒ¼ãƒ³çµ‚äº†
+        if (!isGameOver) EndTurn();
     }
 
     public void TriggerCPUMove()
     {
         Debug.Log("[TriggerCPUMove]");
-        if (cpuPlayer != null)
+        if (cpuPlayer != null && CurrentPhase == TurnPhase.CpuThinking && !isGameOver)
         {
             cpuPlayer.MakeMove();
         }
+    }
+
+    public void HandleCpuNoLegalMove()
+    {
+        if (isGameOver || CurrentPhase != TurnPhase.CpuThinking || currentTurn != Team.White) return;
+        CompleteGame("ç›¸æ‰‹ã¯å‹•ã‘ã¾ã›ã‚“ã€‚å¼•ãåˆ†ã‘ï¼");
     }
 
     public Team GetCurrentTurn()

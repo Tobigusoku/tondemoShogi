@@ -64,7 +64,7 @@ public static class Direction
                         UpLeft, UpRight
                     };
 
-            // ¬‚è‹î: ‚Æ‹à, ¬‹â, —³, ”n
+            // æˆã‚Šé§’: ã¨é‡‘, æˆéŠ€, ç«œ, é¦¬
             case Type.Tokin:
             case Type.Narigin:
                 return team == Team.Black
@@ -81,13 +81,13 @@ public static class Direction
 
             case Type.Ryu:
                 canMoveMultiple = true;
-                // c‰¡‚ğ longi‰½ƒ}ƒX‚Å‚àOKj
+                // ç¸¦æ¨ªã‚’ longï¼ˆä½•ãƒã‚¹ã§ã‚‚OKï¼‰
                 longMoveDirections = new List<Vector2Int>
                 {
                     Vector2Int.up, Vector2Int.down,
                     Vector2Int.left, Vector2Int.right
                 };
-                // ‘ÎŠp‚Í1ƒ}ƒX‚¾‚¯
+                // å¯¾è§’ã¯1ãƒã‚¹ã ã‘
                 return new List<Vector2Int> { UpLeft, UpRight, DownLeft, DownRight };
 
             case Type.Uma:

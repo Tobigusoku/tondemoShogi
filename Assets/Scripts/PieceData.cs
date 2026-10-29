@@ -6,10 +6,10 @@ public class PieceData
     public Type type;
     public Type promotedType;
     public Team team;
-    public List<Vector2Int> moveDirections;         // 1ƒ}ƒX‚¾‚¯i‚ß‚é•ûŒü
-    public List<Vector2Int> longMoveDirections;     // ”òÔEŠp‚Ì‚æ‚¤‚É‰½ƒ}ƒX‚Å‚ài‚ß‚é•ûŒü
-    public bool canMoveMultiple = false; // ü‚Å“®‚¯‚é‹î‚©
-    public bool isPromoted; // ¬‚Á‚Ä‚¢‚é‚©
+    public List<Vector2Int> moveDirections;         // 1ãƒã‚¹ã ã‘é€²ã‚ã‚‹æ–¹å‘
+    public List<Vector2Int> longMoveDirections;     // é£›è»Šãƒ»è§’ã®ã‚ˆã†ã«ä½•ãƒã‚¹ã§ã‚‚é€²ã‚ã‚‹æ–¹å‘
+    public bool canMoveMultiple = false; // ç·šã§å‹•ã‘ã‚‹é§’ã‹
+    public bool isPromoted; // æˆã£ã¦ã„ã‚‹ã‹
 
     public PieceData(Type type, Team team)
     {
@@ -28,7 +28,7 @@ public class PieceData
             case Type.Gin: return Type.Narigin;
             case Type.Hisha: return Type.Ryu;
             case Type.Kaku: return Type.Uma;
-            default: return Type.None; // ¬‚ê‚È‚¢‹î
+            default: return Type.None; // æˆã‚Œãªã„é§’
         }
     }
 
@@ -40,7 +40,7 @@ public class PieceData
 
     public bool CanPromote()
     {
-        // ‚»‚à‚»‚à•àE‹âEŠpE”ò‚¾‚¯‚ª¬‚ê‚é
+        // ãã‚‚ãã‚‚æ­©ãƒ»éŠ€ãƒ»è§’ãƒ»é£›ã ã‘ãŒæˆã‚Œã‚‹
         return type == Type.Fu || type == Type.Gin || type == Type.Kaku || type == Type.Hisha;
     }
 

@@ -13,18 +13,18 @@ public class MenuUI : MonoBehaviour
     public void OnSelectSilver()
     {
         PlayerPrefs.SetString("SpecialPiece", "Gin");
-        Debug.Log("‹â‚ğ‘I‘ğ‚µ‚Ü‚µ‚½");
+        Debug.Log("éŠ€ã‚’é¸æŠã—ã¾ã—ãŸ");
     }
 
     public void OnSelectAssassin()
     {
         PlayerPrefs.SetString("SpecialPiece", "Assassin");
-        Debug.Log("ˆÃEÒ‚ğ‘I‘ğ‚µ‚Ü‚µ‚½");
+        Debug.Log("æš—æ®ºè€…ã‚’é¸æŠã—ã¾ã—ãŸ");
     }
 
     public void OnSelectBomb()
     {
         PlayerPrefs.SetString("SpecialPiece", "Bomb");
-        Debug.Log("”š’e‚ğ‘I‘ğ‚µ‚Ü‚µ‚½");
+        Debug.Log("çˆ†å¼¾ã‚’é¸æŠã—ã¾ã—ãŸ");
     }
 }

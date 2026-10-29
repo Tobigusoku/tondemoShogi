@@ -19,3 +19,11 @@ public enum Team
     Black, 
     White 
 }
+
+public enum TurnPhase
+{
+    HumanInput,
+    CpuThinking,
+    ResolvingMove,
+    GameOver
+}
